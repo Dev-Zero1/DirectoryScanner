@@ -16,7 +16,7 @@ outputFileExt = '.txt'
 
 def searchDir(path):
     for filename in os.listdir(path):
-        if not len(os.listdir(path)) >1: continue
+        ##if not len(os.listdir(path)) >1: continue
         currentDir = os.path.join(path, filename)
         print('\n\n'+currentDir)
         print("-----------------------------")        
