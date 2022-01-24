@@ -4,7 +4,11 @@ from xml.dom import minidom
 import time
 from pathlib import Path
 from datetime import datetime
+import dbFetch
 
+dbFetch.fetch()
+
+##execfile('dbfetch.py')
 path = 'C:\\'
 ##userInputPath= 'C:\\Microsoft\\AndroidNDK64\\android-ndk-r16b\\build\\gmsl'
 DirectoryScraper = 'C:\\DirectoryScraper\\'
@@ -62,10 +66,9 @@ def searchDir(newPath):
             except NotADirectoryError: ##just print the file's name
                     print(filename)
                     continue
-            
-            
+                        
 ##while the count of files in a folder > 1 and no dot in the name:
-searchDir(path)
+##searchDir(path)
 
 ##writeFile.write(elem.firstChild.data + ",/n")       
 ##print(str(processed) + ' Files processed')        
