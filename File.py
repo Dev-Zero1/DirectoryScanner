@@ -8,7 +8,7 @@ class File(object):
             
     def __init__(self,fID, fName, fDir, fType,fLastMod,fSize):
         self.fileID = fID
-        self.name = fName
+        self.fileName = fName
         self.fileDir = fDir
         self.fileType = fType
         self.fileLastModified = fLastMod
@@ -22,3 +22,13 @@ def make_file(fID, fName, fDir, fType,fLastMod,fSize):
 def make_blankFile():
     file = File(0,"","","","",0)
     return file
+
+def displayFile(file):
+    print(file.fileName)
+    print("---------------------")
+    print("ID\t\t"+file.fileID)
+    print("Dir\t\t"+file.fileDir)
+    print("Type\t\t"+file.fileType)
+    print("LastMod\t\t"+file.fileLastModified)
+    print("Size\t\t"+file.fileSize)
+

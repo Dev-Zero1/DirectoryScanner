@@ -10,7 +10,7 @@ def setCredentials():
     return lines
 
 def fetch():
-  file = File.make_blankFile() 
+   
   import mysql.connector
   credentials = setCredentials()
   
@@ -23,26 +23,31 @@ def fetch():
 
   mc = db.cursor()
   
-##
+  mc.execute("SELECT * FROM files")
+  result = mc.fetchall()
+  f = File.make_blankFile()
+  
+  for row in result:
+    f.fileID = row[0]
+    f.fileName = str(row[1])
+    f.fileDir = str(row[2])
+    f.fileType = str(row[3])
+    f.fileLastModified = str(row[4])
+    f.fileSize = str(row[5])
+
 ##  command = "INSERT INTO files VALUES (%d,%s, %s, %s,%s,%d)"
-##  values = ("John", "Highway 21")
+##  values = (f.fileID, f.fileName,f.fileDir,f.fileType,f.fileLastModified,f.fileSize)
 ##  mc.execute(command, values)
-##
 ##  db.commit()
 ##
 ##  print(mc.rowcount, "record successfully inserted.")
-
-
-
-  mc.execute("SELECT * FROM files")
-  result = mc.fetchall()
-
-  for row in result:
-      print(row[1]) ##fileName
-      print("---------------------")
-      print(row[2])##fileDir
-      print(row[3])##fileType
-      print(row[4])##fileLastModified
-      print(str(row[5])+'\n')##fileSize
+    
+    
+    print(row[1]) ##fileName
+    print("---------------------")
+    print(row[2])##fileDir
+    print(row[3])##fileType
+    print(row[4])##fileLastModified
+    print(str(row[5])+'\n')##fileSize
 
 
