@@ -5,24 +5,26 @@ class File(object):
     fileType = ""
     fileLastModified = ""
     fileCreated = ""
+    timeNow = ""
     fileSize = 0
             
-    def __init__(self,fID, fName, fDir, fType,fLastMod, fCreate,fSize):
+    def __init__(self,fID, fName, fDir, fType,fLastMod, fCreate, tNow, fSize):
         self.fileID = fID
         self.fileName = fName
         self.fileDir = fDir
         self.fileType = fType
         self.fileLastModified = fLastMod
         self.fileCreated = fCreate
+        self.timeNow = tNow
         self.fileSize = fSize
 
 
-def make_file(fID, fName, fDir, fType,fLastMod,fCreate,fSize):
-    file = File(fID, fName, fDir, fType,fLastMod,fCreate,fSize)
+def make_file(fID, fName, fDir, fType,fLastMod,fCreate,tNow, fSize):
+    file = File(fID, fName, fDir, fType,fLastMod,fCreate,tNow, fSize)
     return file
 
 def make_blankFile():
-    file = File(0,"","","","","",0)
+    file = File(0,"","","","","","",0)
     return file
 
 def displayFile(file):
@@ -33,5 +35,6 @@ def displayFile(file):
     print("Type\t\t"+file.fileType)
     print("LastMod\t\t"+file.fileLastModified)
     print("Created\t\t"+file.fileCreated)
+    print("TimeNow\t\t"+file.timeNow)
     print("Size\t\t"+file.fileSize)
 

@@ -22,6 +22,17 @@ def printFileData(currDir, filename):
     else:
         print(filename)
         
+def getFileType(filename):
+    fType = ''
+    if not '.' in filename:                 
+        fType = 'folder'                                                     
+    else:
+        try:
+            fType = filename.rsplit('.', 1)[1]
+        except IndexError:
+             fType = 'unknown'
+    return fType
+        
 def skipDir(filename):
     skipIndicator = False
     
@@ -35,25 +46,25 @@ def skipDir(filename):
     elif filename == '$Recycle.Bin': skipIndicator = True
     return skipIndicator
 
-def prepareFile(path,filename,currentDir):
-    if not '.' in filename:                 
-        fType = 'folder'                                                     
-    else:
-        try:
-            fType = filename.rsplit('.', 1)[1]
-        except IndexError:
-             fType = 'unknown'
-    fSize = os.path.getsize(currentDir)
-    print(fSize)
-    fLastMod = datetime.fromtimestamp(os.path.getmtime(currentDir)).strftime('%Y-%m-%d-%H:%M')
-    fCreated = datetime.fromtimestamp(os.path.getctime(currentDir)).strftime('%Y-%m-%d-%H:%M')
+def getFileId():
+    fID = 0
     fID = dbFetch.fetch("SELECT fileId from files order by fileId desc limit 1")
-    print(fID)
     try:
         fID = fID[0][0] + 1
     except IndexError:
         fID = 1
-    file = File.make_file(int(fID), filename, path, fType,fLastMod,fCreated,int(fSize))
+    return fID
+
+def prepareFile(path,filename,currentDir):   
+    fType = getFileType(filename)
+    fSize = os.path.getsize(currentDir)
+    fLastMod = datetime.fromtimestamp(os.path.getmtime(currentDir)).strftime('%Y-%m-%d-%H:%M')
+    fCreated = datetime.fromtimestamp(os.path.getctime(currentDir)).strftime('%Y-%m-%d-%H:%M')
+    timeNow  = dbFetch.fetch("select now()")
+    timeNow = timeNow[0][0]
+    
+    fID = getFileId()
+    file = File.make_file(int(fID), filename, path, fType,fLastMod,fCreated,timeNow, int(fSize))
     return file
 
 def searchDir(newPath):
@@ -77,16 +88,25 @@ def searchDir(newPath):
                 searchDir(nextPath)
                           
             except FileNotFoundError: ##skip these files when they error
-                    continue
+                continue
             except PermissionError:
                 continue
             except NotADirectoryError: ##just print the file's name
-                    print(filename)
-                    continue
-                        
-##while the count of files in a folder > 1 and no dot in the name:
-searchDir(path)
-
+                print(filename)
+                continue
+def main():
+    sec = 20
+    alive = True
+    ##while the count of files in a folder > 1 and no dot in the name:
+    while alive == True:
+        print("Scan Starting." )
+        searchDir(path)
+        print("Scan Finished." )
+        print("Restarting scan in" + str(sec) + " seconds" )
+        time.sleep(sec)
+        
+     
+main()
 ##writeFile.write(elem.firstChild.data + ",/n")       
 ##print(str(processed) + ' Files processed')        
 ##writeFile.close()

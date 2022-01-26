@@ -26,7 +26,6 @@ def push(file):
   values = (f.fileID, f.fileName,f.fileDir,f.fileType,f.fileLastModified,f.fileCreated,f.fileSize)
   mc.execute(command, values)
   db.commit()
-  ##fetch("Select * from files")
 
 def fetch(cmd):
   import mysql.connector
@@ -43,19 +42,7 @@ def fetch(cmd):
   mc.execute(cmd)
   result = mc.fetchall()
   return result
-  
-##  for row in result:
-##    print(row[1]) ##fileName
-##    print("---------------------")
-##    print(row[2])##fileDir
-##    print(row[3])##fileType
-##    print(row[4])##fileLastModified
-##    print(row[5])##fileCreated
-##    print(str(row[6])+'\n')##fileSize
-  
 
-
-##  print(mc.rowcount, "record successfully inserted.")
     
     
     
