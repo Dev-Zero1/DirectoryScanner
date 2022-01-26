@@ -1,3 +1,4 @@
+CREATE DATABASE directoryscanner;
 use directoryscanner;
 
 -- SET FOREIGN_KEY_CHECKS = 0;
