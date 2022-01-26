@@ -5,18 +5,12 @@ import time
 from pathlib import Path
 from datetime import datetime
 import dbFetch
+import File
 
-dbFetch.fetch()
-
-##execfile('dbfetch.py')
 path = 'C:\\'
-##userInputPath= 'C:\\Microsoft\\AndroidNDK64\\android-ndk-r16b\\build\\gmsl'
 DirectoryScraper = 'C:\\DirectoryScraper\\'
 outputFileExt = '.txt'
 
-##os.remove((DirectoryScraper+'data'+outputFileExt))
-##time.sleep(0.5)
-##writer = open((DirectoryScraper+'data'+outputFileExt),"w")
 
 def outputPathHeader(newPath):
     print("\n"+newPath + "\\")
@@ -38,7 +32,29 @@ def skipDir(filename):
     elif filename == 'Windows': skipIndicator = True
     elif filename == 'Intel': skipIndicator = True
     elif filename == 'Microsoft': skipIndicator = True
+    elif filename == '$Recycle.Bin': skipIndicator = True
     return skipIndicator
+
+def prepareFile(path,filename,currentDir):
+    if not '.' in filename:                 
+        fType = 'folder'                                                     
+    else:
+        try:
+            fType = filename.rsplit('.', 1)[1]
+        except IndexError:
+             fType = 'unknown'
+    fSize = os.path.getsize(currentDir)
+    print(fSize)
+    fLastMod = datetime.fromtimestamp(os.path.getmtime(currentDir)).strftime('%Y-%m-%d-%H:%M')
+    fCreated = datetime.fromtimestamp(os.path.getctime(currentDir)).strftime('%Y-%m-%d-%H:%M')
+    fID = dbFetch.fetch("SELECT fileId from files order by fileId desc limit 1")
+    print(fID)
+    try:
+        fID = fID[0][0] + 1
+    except IndexError:
+        fID = 1
+    file = File.make_file(int(fID), filename, path, fType,fLastMod,fCreated,int(fSize))
+    return file
 
 def searchDir(newPath):
     path = newPath
@@ -53,8 +69,9 @@ def searchDir(newPath):
                 if not len(os.listdir(path)) >=1: continue            
                 ##my current file is this directory plus the filename in this loop
                 currentDir = os.path.join(path, filename)
-                printFileData(currentDir, filename)
-                
+                printFileData(currentDir, filename)               
+                file = prepareFile(path,filename,currentDir)
+                dbFetch.push(file)
                 ##the new path is this path plus the next folder
                 nextPath = os.path.join(path, filename)
                 searchDir(nextPath)
@@ -68,7 +85,7 @@ def searchDir(newPath):
                     continue
                         
 ##while the count of files in a folder > 1 and no dot in the name:
-##searchDir(path)
+searchDir(path)
 
 ##writeFile.write(elem.firstChild.data + ",/n")       
 ##print(str(processed) + ' Files processed')        

@@ -14,18 +14,13 @@ SET FOREIGN_KEY_CHECKS = 1;
 DROP TABLE IF EXISTS `files`;
 
 CREATE TABLE `files` (
-  `fileId` int(11) NOT NULL AUTO_INCREMENT,
-  `fileName` varchar(50) NOT NULL,
-  `fileDir` varchar(50) NOT NULL,
+  `fileId` int NOT NULL AUTO_INCREMENT,
+  `fileName` varchar(150) NOT NULL,
+  `fileDir` varchar(250) NOT NULL,
   `fileType` varchar(50) NOT NULL,  
   `lastModified` datetime NOT NULL,
-  `fileSize` int(11),
+  `fileCreated` datetime NOT NULL,
+  `fileSize` bigint unsigned,
   PRIMARY KEY (`fileId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
-
--- INSERT INTO `files` VALUES
--- (1,'index.html', 'C:\\inetpub\\wwroot\\','html','2019-01-01 00:00:00', 1),
--- (2,'articles.html', 'C:\\inetpub\\wwroot\\','html','2019-01-02 00:00:00', 1),
--- (3,'data.xml', 'C:\\inetpub\\wwroot\\data','xml','2019-01-02 00:00:00', 1),
--- (4,'img.png', 'C:\\inetpub\\wwroot\\images','png','2019-01-02 00:00:00', 1);
 

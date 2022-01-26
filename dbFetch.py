@@ -9,8 +9,8 @@ def setCredentials():
     lines = lines[0].split(",")
     return lines
 
-def fetch():
-   
+def push(file):
+  f = file
   import mysql.connector
   credentials = setCredentials()
   
@@ -22,32 +22,42 @@ def fetch():
   )
 
   mc = db.cursor()
-  
-  mc.execute("SELECT * FROM files")
-  result = mc.fetchall()
-  f = File.make_blankFile()
-  
-  for row in result:
-    f.fileID = row[0]
-    f.fileName = str(row[1])
-    f.fileDir = str(row[2])
-    f.fileType = str(row[3])
-    f.fileLastModified = str(row[4])
-    f.fileSize = str(row[5])
+  command = "INSERT INTO files VALUES (%s,%s, %s, %s,%s,%s,%s)"
+  values = (f.fileID, f.fileName,f.fileDir,f.fileType,f.fileLastModified,f.fileCreated,f.fileSize)
+  mc.execute(command, values)
+  db.commit()
+  ##fetch("Select * from files")
 
-##  command = "INSERT INTO files VALUES (%d,%s, %s, %s,%s,%d)"
-##  values = (f.fileID, f.fileName,f.fileDir,f.fileType,f.fileLastModified,f.fileSize)
-##  mc.execute(command, values)
-##  db.commit()
-##
+def fetch(cmd):
+  import mysql.connector
+  credentials = setCredentials()
+  
+  db = mysql.connector.connect(
+    host="localhost",
+    user=credentials[0],
+    password=credentials[1],
+    database="directoryScanner"
+  )
+
+  mc = db.cursor()
+  mc.execute(cmd)
+  result = mc.fetchall()
+  return result
+  
+##  for row in result:
+##    print(row[1]) ##fileName
+##    print("---------------------")
+##    print(row[2])##fileDir
+##    print(row[3])##fileType
+##    print(row[4])##fileLastModified
+##    print(row[5])##fileCreated
+##    print(str(row[6])+'\n')##fileSize
+  
+
+
 ##  print(mc.rowcount, "record successfully inserted.")
     
     
-    print(row[1]) ##fileName
-    print("---------------------")
-    print(row[2])##fileDir
-    print(row[3])##fileType
-    print(row[4])##fileLastModified
-    print(str(row[5])+'\n')##fileSize
+    
 
 
