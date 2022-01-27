@@ -1,4 +1,5 @@
 import File
+import mysql.connector
 
 def setCredentials():
   credFile = 'C:\\Python\\Scripts\\sqlData\\sqlInfo.csv'
@@ -10,8 +11,7 @@ def setCredentials():
     return lines
 
 def push(file):
-  f = file
-  import mysql.connector
+  f = file  
   credentials = setCredentials()
   
   db = mysql.connector.connect(
@@ -28,7 +28,6 @@ def push(file):
   db.commit()
 
 def fetch(cmd):
-  import mysql.connector
   credentials = setCredentials()
   
   db = mysql.connector.connect(
@@ -37,12 +36,35 @@ def fetch(cmd):
     password=credentials[1],
     database="directoryScanner"
   )
-
   mc = db.cursor()
   mc.execute(cmd)
   result = mc.fetchall()
   return result
 
+
+def checkIfExists(file):
+  credentials = setCredentials() 
+  db = mysql.connector.connect(
+    host="localhost",
+    user=credentials[0],
+    password=credentials[1],
+    database="directoryScanner"
+  )
+  mc = db.cursor()
+  cmd = "select * from files "
+  +f"WHERE  fileDir = '{file.fileDir}' "
+  +f"AND fileName = '{file.fileName}' "
+  +f"AND fileSize = '{file.fileSize}' "
+  +f"AND lastModified = '{file.fileLastModified}' "
+  +"order by fileScannedAt desc limit 1 "
+  mc.execute(cmd)
+  result = mc.fetchall()
+  
+  if len(result) >= 1:
+    ##don't put in the DB if one already exists with the same data.
+    ##update the lastModified time in the DB
+  else:
+    push(file)
     
     
     

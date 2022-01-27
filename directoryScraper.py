@@ -82,7 +82,8 @@ def searchDir(newPath):
                 currentDir = os.path.join(path, filename)
                 printFileData(currentDir, filename)               
                 file = prepareFile(path,filename,currentDir)
-                dbFetch.push(file)
+                dbFetch.checkIfExists(file)
+                ##dbFetch.push(file)
                 ##the new path is this path plus the next folder
                 nextPath = os.path.join(path, filename)
                 searchDir(nextPath)
