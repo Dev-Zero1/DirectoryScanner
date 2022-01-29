@@ -1,6 +1,8 @@
 import File
 import mysql.connector
-
+##------------------------------------------------------
+##
+##------------------------------------------------------ 
 def setCredentials():
   credFile = 'C:\\Python\\Scripts\\sqlData\\sqlInfo.csv'
   ##this file has my username and password separated by comma
@@ -9,7 +11,9 @@ def setCredentials():
     lines = myFile.readlines()
     lines = lines[0].split(",")
     return lines
-
+##------------------------------------------------------
+##
+##------------------------------------------------------ 
 def push(file):
   f = file  
   credentials = setCredentials()
@@ -22,11 +26,13 @@ def push(file):
   )
 
   mc = db.cursor()
-  command = "INSERT INTO files VALUES (%s,%s, %s, %s,%s,%s,%s)"
-  values = (f.fileID, f.fileName,f.fileDir,f.fileType,f.fileLastModified,f.fileCreated,f.fileSize)
+  command = "INSERT INTO files VALUES (%s,%s, %s, %s,%s,%s,%s,%s)"  
+  values = (f.fileID, f.fileName,File.formatCurrentDir(f.fileDir),f.fileType,f.fileLastModified,f.fileCreated,f.timeNow,f.fileSize)
   mc.execute(command, values)
   db.commit()
-
+##------------------------------------------------------
+##
+##------------------------------------------------------ 
 def fetch(cmd):
   credentials = setCredentials()
   
@@ -41,8 +47,10 @@ def fetch(cmd):
   result = mc.fetchall()
   return result
 
-
-def checkIfExists(file):
+##------------------------------------------------------
+##
+##------------------------------------------------------ 
+def checkIfExists(file,logPath):
   credentials = setCredentials() 
   db = mysql.connector.connect(
     host="localhost",
@@ -51,22 +59,34 @@ def checkIfExists(file):
     database="directoryScanner"
   )
   mc = db.cursor()
-  cmd = "select * from files "
-  +f"WHERE  fileDir = '{file.fileDir}' "
-  +f"AND fileName = '{file.fileName}' "
-  +f"AND fileSize = '{file.fileSize}' "
-  +f"AND lastModified = '{file.fileLastModified}' "
-  +"order by fileScannedAt desc limit 1 "
+  File.displayFile(file)
+  ##sql requires strings to handle escape chars for directories, these are formatted \ to \\
+  tempDir = file.fileDir.replace('\\', '\\\\')
+
+  selectWhere = "SELECT * from files WHERE"
+  cond1 = f" ( fileDir = '{tempDir}'"   ##<<<<<<<<<<<  '\\' ?
+  cond2 = f" AND fileName = '{file.fileName}'"
+  cond3 = f" AND fileSize_bytes = {file.fileSize}"
+  cond4 = f" AND lastModified = '{file.fileLastModified}');"
+  
+  cmd = selectWhere + cond1 + cond2 + cond3 + cond4
+  File.logError(file,("fetchRequest: "+cmd+"\n"),logPath) 
   mc.execute(cmd)
+  
   result = mc.fetchall()
   
   if len(result) >= 1:
     ##don't put in the DB if one already exists with the same data.
     ##update the lastModified time in the DB
+    File.logError(file,"Duplicate File results returned for this Directory\File. ",logPath)
+    ##cmd = "Update "
   else:
+    File.logError(file,"Duplicate Files not found, creating file record.",logPath)
     push(file)
     
-    
+##------------------------------------------------------
+##
+##------------------------------------------------------     
     
 
 

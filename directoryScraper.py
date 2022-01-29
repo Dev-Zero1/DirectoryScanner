@@ -1,19 +1,83 @@
+##------------------------------------------------------##
+##
+##------------------------------------------------------##
 import os
-from os import scandir
-from xml.dom import minidom
+##from os import scandir
+##from xml.dom import minidom
 import time
 from pathlib import Path
 from datetime import datetime
 import dbFetch
 import File
 
-path = 'C:\\'
-DirectoryScraper = 'C:\\DirectoryScraper\\'
-outputFileExt = '.txt'
 
 
+##------------------------------------------------------
+##getDateNow() returns a string date of
+##YYYYMMDD or '20220129' if Jan 29, 2022
+##------------------------------------------------------    
+def getDateNow():
+    timeNow  = dbFetch.fetch("select now()")    
+    date = str(timeNow[0][0]).replace('-','')[:8]
+    return date
+##------------------------------------------------------
+##getLogDateNow returns a string date UTC of
+##YYYY-MM-DD HH:MM: or  '2022-01-29 10:50:37' if Jan 29, 2022
+##------------------------------------------------------ 
+def getLogDateTime():
+    timeNow  = dbFetch.fetch("select now()")    
+    date = str(timeNow[0][0])
+    return date
+##------------------------------------------------------
+##logEvent writes to the log folder in
+##C:\DirectoryScraper\YYYYMMDD\DirScraperLog.txt
+##------------------------------------------------------ 
+def logEvent(msg, logPath):
+    logWriter = open(logPath,"a")   
+    msg = "\n" +str(getLogDateTime())+" EventLogged: "+msg 
+    logWriter.write(msg + "\n")
+    logWriter.close()
+
+def logFormattedMsg(msg, logPath):
+    logWriter = open(logPath,"a")   
+    logWriter.write(msg)
+    logWriter.close()
+##------------------------------------------------------
+##
+##------------------------------------------------------     
+def createAppFolders():
+    ##create root folder
+    DirectoryScraperPath = 'C:\\DirectoryScraper\\'
+    createFolder(DirectoryScraperPath)
+    
+    ##create today's log folder if it doesn't exist
+    date = getDateNow()
+    DirectoryScraperPath = 'C:\\DirectoryScraper\\'+ date +"\\"
+    createFolder(DirectoryScraperPath)
+    
+    ##create today's log file if it doesn't exist
+    fileExt = '.txt'
+    logName = 'DirScraperLog'+ fileExt
+    logPath = DirectoryScraperPath+logName
+    createFile(logPath)
+    return logPath
+
+def setOutfileInfo():              
+    logPath = createAppFolders()    
+    return logPath
+
+def createFolder(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
+        
+def createFile(path):
+    if not os.path.exists(path):
+        os.system('touch '+path)
+##------------------------------------------------------
+##
+##------------------------------------------------------         
 def outputPathHeader(newPath):
-    print("\n"+newPath + "\\")
+    print("\n\n"+newPath + "\\")
     print("-----------------------------")
     
 def printFileData(currDir, filename):
@@ -21,10 +85,12 @@ def printFileData(currDir, filename):
         print(os.listdir(currDir))                                                       
     else:
         print(filename)
-        
-def getFileType(filename):
+##------------------------------------------------------
+##
+##------------------------------------------------------         
+def getFileType(currDir,filename):
     fType = ''
-    if not '.' in filename:                 
+    if Path(currDir).is_dir():                 
         fType = 'folder'                                                     
     else:
         try:
@@ -32,7 +98,9 @@ def getFileType(filename):
         except IndexError:
              fType = 'unknown'
     return fType
-        
+##------------------------------------------------------
+##
+##------------------------------------------------------         
 def skipDir(filename):
     skipIndicator = False
     
@@ -44,8 +112,11 @@ def skipDir(filename):
     elif filename == 'Intel': skipIndicator = True
     elif filename == 'Microsoft': skipIndicator = True
     elif filename == '$Recycle.Bin': skipIndicator = True
+    elif filename == 'DirectoryScraper': skipIndicator = True
     return skipIndicator
-
+##------------------------------------------------------
+##
+##------------------------------------------------------ 
 def getFileId():
     fID = 0
     fID = dbFetch.fetch("SELECT fileId from files order by fileId desc limit 1")
@@ -54,20 +125,29 @@ def getFileId():
     except IndexError:
         fID = 1
     return fID
-
+##------------------------------------------------------
+##
+##------------------------------------------------------ 
 def prepareFile(path,filename,currentDir):   
-    fType = getFileType(filename)
+    fType = getFileType(currentDir,filename)
     fSize = os.path.getsize(currentDir)
+    
     fLastMod = datetime.fromtimestamp(os.path.getmtime(currentDir)).strftime('%Y-%m-%d-%H:%M')
+    fLastMod = fLastMod[:10] +' '+fLastMod[11:]+":00"
+    
     fCreated = datetime.fromtimestamp(os.path.getctime(currentDir)).strftime('%Y-%m-%d-%H:%M')
+    fCreated = fCreated[:10] +' '+fCreated[11:]+":00"
+    
     timeNow  = dbFetch.fetch("select now()")
     timeNow = timeNow[0][0]
     
     fID = getFileId()
     file = File.make_file(int(fID), filename, path, fType,fLastMod,fCreated,timeNow, int(fSize))
     return file
-
-def searchDir(newPath):
+##------------------------------------------------------
+##
+##------------------------------------------------------ 
+def searchDir(newPath,logPath):
     path = newPath
     outputPathHeader(newPath)
     for filename in os.listdir(path):
@@ -77,37 +157,49 @@ def searchDir(newPath):
         if skipDir(filename) == False:
             try:
                 ##if the directory doesn't have one item in it at least, skip this code
-                if not len(os.listdir(path)) >=1: continue            
-                ##my current file is this directory plus the filename in this loop
+                if not len(os.listdir(path)) >=1: continue
                 currentDir = os.path.join(path, filename)
+                logFormattedMsg(("\n\n"+currentDir+"\n------------------------------------------"), logPath)
+                
                 printFileData(currentDir, filename)               
                 file = prepareFile(path,filename,currentDir)
-                dbFetch.checkIfExists(file)
-                ##dbFetch.push(file)
+                dbFetch.checkIfExists(file,logPath)
+                
                 ##the new path is this path plus the next folder
                 nextPath = os.path.join(path, filename)
-                searchDir(nextPath)
+                searchDir(nextPath,logPath)
                           
             except FileNotFoundError: ##skip these files when they error
+                File.logFileError(file,1,logPath)
                 continue
             except PermissionError:
+                File.logFileError(file,2,logPath)
                 continue
             except NotADirectoryError: ##just print the file's name
-                print(filename)
-                continue
+                if Path(currentDir).is_dir() == False : continue
+                File.logFileError(file,3,logPath)
+ 
+##------------------------------------------------------
+##
+##------------------------------------------------------ 
 def main():
-    sec = 20
+    path = 'C:\\' 
+    sec = 5
     alive = True
-    ##while the count of files in a folder > 1 and no dot in the name:
+    logPath = setOutfileInfo()
+    ##goes until closed manually
     while alive == True:
-        print("Scan Starting." )
-        searchDir(path)
-        print("Scan Finished." )
-        print("Restarting scan in" + str(sec) + " seconds" )
+        logEvent(("Scan Starting in "+ path),logPath)          
+        searchDir(path,logPath)
+        logEvent("Scan Finished.",logPath )
+        logEvent("Restarting scan in" + str(sec) + " seconds",logPath )
         time.sleep(sec)
-        
-     
+##------------------------------------------------------
+## Run Main program, close execution window to stop.
+##------------------------------------------------------
 main()
+##------------------------------------------------------ 
+
 ##writeFile.write(elem.firstChild.data + ",/n")       
 ##print(str(processed) + ' Files processed')        
 ##writeFile.close()

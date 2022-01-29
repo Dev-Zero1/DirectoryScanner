@@ -22,7 +22,7 @@ CREATE TABLE `files` (
   `lastModified` datetime NOT NULL,
   `fileCreated` datetime NOT NULL,
   `fileScannedAt` datetime NOT NULL,
-  `fileSize (bytes)` bigint unsigned,
+  `fileSize_bytes` bigint unsigned,
   PRIMARY KEY (`fileId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
