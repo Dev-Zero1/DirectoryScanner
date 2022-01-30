@@ -66,10 +66,10 @@ def logFileError(self, errType, logPath):
     logWriter = open(logPath,"a")   
     errMsg = ""
 
-    if errType == 1:    errMsg = "\n" + str(self.timeNow) + "(FileNotFoundError): " ##+ formatFileDir(self) + self.fileName
-    elif errType == 2:  errMsg = "\n" + str(self.timeNow) + "(PermissionError): " ##+ formatFileDir(self) +  self.fileName
-    elif errType == 3:  errMsg = "\n" + str(self.timeNow) + "(NotADirectoryError): "## + formatFileDir(self) +  self.fileName
-    else:               errMsg = "\n" + str(self.timeNow) + "(Unknown Error): " ##+ formatFileDir(self) +  self.fileName
+    if errType == 1:    errMsg = "\n" + str(self.timeNow) + "(FileNotFoundError): " + formatFileDir(self) + self.fileName
+    elif errType == 2:  errMsg = "\n" + str(self.timeNow) + "(PermissionError): " + formatFileDir(self) +  self.fileName
+    elif errType == 3:  errMsg = "\n" + str(self.timeNow) + "(NotADirectoryError): " + formatFileDir(self) +  self.fileName
+    else:               errMsg = "\n" + str(self.timeNow) + "(Unknown Error): " + formatFileDir(self) +  self.fileName
         
     logWriter.write(errMsg)
     logWriter.close()

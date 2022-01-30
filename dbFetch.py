@@ -60,6 +60,11 @@ def checkIfExists(file,logPath):
   )
   mc = db.cursor()
   File.displayFile(file)
+  tempDir = file.fileDir
+  
+  if(tempDir == 'C:\\'):
+    tempDir = tempDir[:len(tempDir)-1]
+    
   ##sql requires strings to handle escape chars for directories, these are formatted \ to \\
   tempDir = file.fileDir.replace('\\', '\\\\')
 
