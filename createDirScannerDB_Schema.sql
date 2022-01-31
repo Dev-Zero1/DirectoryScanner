@@ -27,8 +27,6 @@ CREATE TABLE `files` (
   PRIMARY KEY (`fileId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
-
-
 CREATE TABLE `fileContent` ( 
 `fileId` int NOT NULL AUTO_INCREMENT,
 `fileTxt` TEXT ,

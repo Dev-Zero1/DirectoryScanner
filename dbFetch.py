@@ -42,6 +42,7 @@ def push(file,logPath):
     mc.execute(command, values)
     db.commit() 
     File.logError(file,("sendRequestSuccess: "+command+"\n"),logPath)
+    
   except:
     File.logError(file,("sendRequestFailed: "+command+"\n"),logPath)
 ##------------------------------------------------------

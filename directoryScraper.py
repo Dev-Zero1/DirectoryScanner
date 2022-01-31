@@ -213,8 +213,9 @@ main()
 ##demo.demoReturn()
 ##------------------------------------------------------ 
 
-##writeFile.write(elem.firstChild.data + ",/n")       
-##print(str(processed) + ' Files processed')        
-##writeFile.close()
+
+##import zipfile
+##with zipfile.ZipFile(zipPath, 'r') as zip:
+##    zip.extractall(dirPath)
 
 ####C:\Python> python.exe "C:\Python\Scripts\DirScraper\DirectoryScanner\directoryScraper.py"
