@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime
 import dbFetch
 import File
-
+import demo
 
 
 ##------------------------------------------------------
@@ -47,17 +47,17 @@ def logFormattedMsg(msg, logPath):
 ##------------------------------------------------------     
 def createAppFolders():
     ##create root folder
-    DirectoryScraperPath = 'C:\\DirectoryScraper\\'
+    DirectoryScraperPath = 'C:\\DirectoryScanner\\'
     createFolder(DirectoryScraperPath)
     
     ##create today's log folder if it doesn't exist
     date = getDateNow()
-    DirectoryScraperPath = 'C:\\DirectoryScraper\\'+ date +"\\"
+    DirectoryScraperPath = 'C:\\DirectoryScanner\\'+ date +"\\"
     createFolder(DirectoryScraperPath)
     
     ##create today's log file if it doesn't exist
     fileExt = '.txt'
-    logName = 'DirScraperLog'+ fileExt
+    logName = 'DirScannerLog'+ fileExt
     logPath = DirectoryScraperPath+logName
     createFile(logPath)
     return logPath
@@ -112,7 +112,7 @@ def skipDir(filename):
     elif filename == 'Intel': skipIndicator = True
     elif filename == 'Microsoft': skipIndicator = True
     elif filename == '$Recycle.Bin': skipIndicator = True
-    elif filename == 'DirectoryScraper': skipIndicator = True
+    elif filename == 'DirectoryScanner': skipIndicator = True
     return skipIndicator
 ##------------------------------------------------------
 ##
@@ -163,8 +163,11 @@ def searchDir(newPath,logPath):
                 
                 printFileData(currentDir, filename)               
                 file = prepareFile(path,filename,currentDir)
-                dbFetch.checkIfExists(file,logPath)
-                
+                dbFetch.checkIfExists(file,logPath)                
+                dbFetch.pushFileContent(file,logPath)
+               
+                    ##print("failed to push content")
+                          
                 ##the new path is this path plus the next folder
                 nextPath = os.path.join(path, filename)
                 searchDir(nextPath,logPath)
@@ -183,8 +186,9 @@ def searchDir(newPath,logPath):
 ##
 ##------------------------------------------------------ 
 def main():
-    path = 'C:\\' 
-    sec = 5
+    path = 'C:\\testFileDirectories'
+    run = 10
+    sec = 10
     alive = True
     logPath = setOutfileInfo()
     ##goes until closed manually
@@ -192,12 +196,21 @@ def main():
         logEvent(("Scan Starting in "+ path),logPath)          
         searchDir(path,logPath)
         logEvent("Scan Finished.",logPath )
+        logEvent("Moving Files for next run",logPath )        
+        if run == 10:
+            demo.demoMove()
+            run = 11
+        else:
+            demo.demoReturn()
+            run = 10
+        time.sleep(sec)
         logEvent("Restarting scan in" + str(sec) + " seconds",logPath )
         time.sleep(sec)
 ##------------------------------------------------------
 ## Run Main program, close execution window to stop.
 ##------------------------------------------------------
 main()
+##demo.demoReturn()
 ##------------------------------------------------------ 
 
 ##writeFile.write(elem.firstChild.data + ",/n")       

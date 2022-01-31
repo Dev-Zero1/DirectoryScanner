@@ -12,7 +12,8 @@ use directoryscanner;
 -- DEALLOCATE PREPARE stmt;
 -- SET FOREIGN_KEY_CHECKS = 1;
 
-##DROP TABLE IF EXISTS `files`;
+DROP TABLE IF EXISTS `fileContent`;
+DROP TABLE IF EXISTS `files`;
 
 CREATE TABLE `files` (
   `fileId` int NOT NULL AUTO_INCREMENT,
@@ -26,11 +27,11 @@ CREATE TABLE `files` (
   PRIMARY KEY (`fileId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
-DROP TABLE IF EXISTS `fileContent`;
+
 
 CREATE TABLE `fileContent` ( 
-`fileId` int NOT NULL AUTO_INCREMENT, 
-`blob` LONGBLOB NOT NULL, 
-PRIMARY KEY (`fileId`)
+`fileId` int NOT NULL AUTO_INCREMENT,
+`fileTxt` TEXT ,
+FOREIGN KEY (`fileId`) REFERENCES files(`fileId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 

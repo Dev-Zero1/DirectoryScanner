@@ -1,5 +1,6 @@
 import File
 import mysql.connector
+import os
 ##------------------------------------------------------
 ##
 ##------------------------------------------------------ 
@@ -13,8 +14,8 @@ def setCredentials():
     return lines
 ##------------------------------------------------------
 ##
-##------------------------------------------------------ 
-def push(file):
+##------------------------------------------------------
+def push(file,logPath):
   f = file  
   credentials = setCredentials()
   
@@ -28,8 +29,21 @@ def push(file):
   mc = db.cursor()
   command = "INSERT INTO files VALUES (%s,%s, %s, %s,%s,%s,%s,%s)"  
   values = (f.fileID, f.fileName,File.formatCurrentDir(f.fileDir),f.fileType,f.fileLastModified,f.fileCreated,f.timeNow,f.fileSize)
-  mc.execute(command, values)
-  db.commit()
+  try:
+    mc.execute(command, values)
+    db.commit()
+    File.logError(file,("sendRequestSuccess: "+command+"\n"),logPath) 
+  except:
+    File.logError(file,("sendRequestFailed: "+command+"\n"),logPath)
+    
+  command = "INSERT INTO filecontent VALUES (%s,%s)"  
+  values = (f.fileID,'')
+  try:
+    mc.execute(command, values)
+    db.commit() 
+    File.logError(file,("sendRequestSuccess: "+command+"\n"),logPath)
+  except:
+    File.logError(file,("sendRequestFailed: "+command+"\n"),logPath)
 ##------------------------------------------------------
 ##
 ##------------------------------------------------------ 
@@ -59,7 +73,7 @@ def checkIfExists(file,logPath):
     database="directoryScanner"
   )
   mc = db.cursor()
-  File.displayFile(file)
+  ##File.displayFile(file)
   tempDir = file.fileDir
   
   if(tempDir == 'C:\\'):
@@ -69,7 +83,7 @@ def checkIfExists(file,logPath):
   tempDir = file.fileDir.replace('\\', '\\\\')
 
   selectWhere = "SELECT * from files WHERE"
-  cond1 = f" ( fileDir = '{tempDir}'"   ##<<<<<<<<<<<  '\\' ?
+  cond1 = f" ( fileDir = '{tempDir}\\\\'" 
   cond2 = f" AND fileName = '{file.fileName}'"
   cond3 = f" AND fileSize_bytes = {file.fileSize}"
   cond4 = f" AND lastModified = '{file.fileLastModified}');"
@@ -82,16 +96,51 @@ def checkIfExists(file,logPath):
   
   if len(result) >= 1:
     ##don't put in the DB if one already exists with the same data.
-    ##update the lastModified time in the DB
     File.logError(file,"Duplicate File results returned for this Directory\File. ",logPath)
-    ##cmd = "Update "
   else:
     File.logError(file,"Duplicate Files not found, creating file record.",logPath)
-    push(file)
+    push(file,logPath)
     
 ##------------------------------------------------------
 ##
 ##------------------------------------------------------     
+def pushFileContent(file, logPath):
+  
+  credentials = setCredentials() 
+  db = mysql.connector.connect(
+    host="localhost",
+    user=credentials[0],
+    password=credentials[1],
+    database="directoryScanner"
+    )
+  f = file
+  extList = ['xml','html','htm','css','js','txt','log','config','ini','bat','cif','ach','dat','cs','resx','md','csv']
+  
+  if f.fileType in extList:    
+    fullPath = os.path.join(f.fileDir, f.fileName)
+    
+    with open(fullPath, 'r') as reader:
+      try:
+        filecontent = reader.readlines()
+        fc = ''
+        for line in filecontent:
+          fc += line
+        print(fc)
+        mc = db.cursor() 
+        cmd = "UPDATE filecontent SET fileTxt = %s WHERE fileId = %s"  
+        values = (fc,f.fileID)
+        print(values)
+        try:
+          mc.execute(cmd, values)
+          db.commit()
+          print(("sendRequestSuccess: "+cmd+"\n"))
+          File.logError(file,("sendRequestSuccess: "+cmd+"\n"),logPath) 
+        except:
+          File.logError(file,("sendRequestFailed: "+cmd+"\n"),logPath)
+          print("sendRequestFailed: "+cmd+"\n")
+      except UnicodeDecodeError:
+        File.logError(file,("parseRequestFailed: "+fullPath+"\n"),logPath)
+        print("parseRequestFailed: "+fullPath+"\n")
     
 
 
