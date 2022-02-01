@@ -166,7 +166,7 @@ def searchDir(newPath,logPath):
                 dbFetch.checkIfExists(file,logPath)                
                 dbFetch.pushFileContent(file,logPath)
                
-                    ##print("failed to push content")
+                 ##print("failed to push content")
                           
                 ##the new path is this path plus the next folder
                 nextPath = os.path.join(path, filename)

@@ -1,6 +1,6 @@
 use directoryscanner;
 
-select * from filecontent;
+select * from filecontent where fileTxt != '';
 select * from files;
 -- ---------------------------------------------------------------
 -- query to pull any CU's directories
