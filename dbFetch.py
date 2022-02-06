@@ -82,14 +82,22 @@ def checkIfExists(file,logPath):
     
   ##sql requires strings to handle escape chars for directories, these are formatted \ to \\
   tempDir = file.fileDir.replace('\\', '\\\\')
-
-  selectWhere = "SELECT * from files WHERE"
-  cond1 = f" ( fileDir = '{tempDir}\\\\'" 
-  cond2 = f" AND fileName = '{file.fileName}'"
-  cond3 = f" AND fileSize_bytes = {file.fileSize}"
-  cond4 = f" AND lastModified = '{file.fileLastModified}');"
-  
-  cmd = selectWhere + cond1 + cond2 + cond3 + cond4
+  print('fileType = '+ file.fileType)
+  if file.fileType != 'folder':
+    selectWhere = "SELECT * from files WHERE"
+    cond1 = f" ( fileDir = '{tempDir}\\\\'" 
+    cond2 = f" AND fileName = '{file.fileName}'"
+    cond3 = f" AND fileSize_bytes = {file.fileSize}"
+    cond4 = f" AND lastModified = '{file.fileLastModified}');"
+    cmd = selectWhere + cond1 + cond2 + cond3 +cond4
+  else:
+    selectWhere = "SELECT * from files WHERE"
+    cond1 = f" ( fileDir = '{tempDir}\\\\'" 
+    cond2 = f" AND fileName = '{file.fileName}'"
+    cond3 = f" AND fileSize_bytes = {file.fileSize});"
+    ##cond4 = f" AND lastModified = '{file.fileLastModified}');"    
+    cmd = selectWhere + cond1 + cond2 + cond3
+    
   File.logError(file,("fetchRequest: "+cmd+"\n"),logPath) 
   mc.execute(cmd)
   
@@ -115,7 +123,7 @@ def pushFileContent(file, logPath):
     database="directoryScanner"
     )
   f = file
-  extList = ['xml','html','htm','css','js','txt','log','config','ini','bat','cif','ach','dat','cs','resx','md','csv']
+  extList = ['xml','html','htm','css','js','txt','log','config','ini','bat','cif','ach','dat','cs','resx','md','csv','py']
   
   if f.fileType in extList:    
     fullPath = os.path.join(f.fileDir, f.fileName)
@@ -126,6 +134,9 @@ def pushFileContent(file, logPath):
         fc = ''
         for line in filecontent:
           fc += line
+        if f.fileType == 'config' or f.fileType == 'xml':
+          i = fc.index('<')
+          fc = fc[i:]
         print(fc)
         mc = db.cursor() 
         cmd = "UPDATE filecontent SET fileTxt = %s WHERE fileId = %s"  

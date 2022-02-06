@@ -29,7 +29,7 @@ CREATE TABLE `files` (
 
 CREATE TABLE `fileContent` ( 
 `fileId` int NOT NULL AUTO_INCREMENT,
-`fileTxt` TEXT ,
+`fileTxt` LONGTEXT ,
 FOREIGN KEY (`fileId`) REFERENCES files(`fileId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 

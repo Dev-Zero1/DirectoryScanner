@@ -10,7 +10,7 @@ from datetime import datetime
 import dbFetch
 import File
 import demo
-import sys
+
 
 ##------------------------------------------------------
 ##getDateNow() returns a string date of
@@ -50,12 +50,9 @@ def createAppFolders():
     DirectoryScraperPath = 'C:\\DirectoryScanner\\'
     createFolder(DirectoryScraperPath)
     
-    DirectoryScraperLogPath = 'C:\\DirectoryScanner\\DS_Logs\\'
-    createFolder(DirectoryScraperLogPath)
-    
     ##create today's log folder if it doesn't exist
     date = getDateNow()
-    DirectoryScraperPath = 'C:\\DirectoryScanner\\DS_Logs\\'+ date +"\\"
+    DirectoryScraperPath = 'C:\\DirectoryScanner\\'+ date +"\\"
     createFolder(DirectoryScraperPath)
     
     ##create today's log file if it doesn't exist
@@ -153,91 +150,62 @@ def prepareFile(path,filename,currentDir):
 def searchDir(newPath,logPath):
     path = newPath
     outputPathHeader(newPath)
-    for filename in os.listdir(path):   
+    for filename in os.listdir(path):
+        
         ##skip folders with high level encryption and authentication,
         ##or whitelist to avoid scanning it via the skipDir(filename) function.
         if skipDir(filename) == False:
             try:
-                ##if the directory has at least one item in it, run this code
-                if len(os.listdir(path)) >=1:
-                    currentDir = os.path.join(path, filename)
-                    logFormattedMsg(("\n\n"+currentDir+"\n------------------------------------------"), logPath)
-                    
-                    printFileData(currentDir, filename)               
-                    file = prepareFile(path,filename,currentDir)
-                    dbFetch.checkIfExists(file,logPath)                
-                    dbFetch.pushFileContent(file,logPath)
-                                          
-                    ##the new path is this path plus the next folder
-                    nextPath = os.path.join(path, filename)
-                    searchDir(nextPath,logPath)                          
-            except FileNotFoundError: ##skip these files when they error
-                File.logFileError(file,1,logPath)              
-            except PermissionError:
-                File.logFileError(file,2,logPath)           
-            except NotADirectoryError: ##just print the file's name
-                if Path(currentDir).is_dir() == True:
-                    File.logFileError(file,3,logPath)
-                
-def validateFile(newPath, filename, logPath):
-    path = newPath
-    outputPathHeader(filename)        
-        ##skip folders with high level encryption and authentication,
-        ##or whitelist to avoid scanning it via the skipDir(filename) function.
-    if skipDir(filename) == False:
-        try:
-            print(path+filename)
-            ##if the directory and path file exist, run this code
-            if os.path.exists(path+filename):               
+                ##if the directory doesn't have one item in it at least, skip this code
+                if not len(os.listdir(path)) >=1: continue
                 currentDir = os.path.join(path, filename)
-                logFormattedMsg(("\n\n"+currentDir+"\n------------------------------------------"), logPath)                
+                logFormattedMsg(("\n\n"+currentDir+"\n------------------------------------------"), logPath)
+                
                 printFileData(currentDir, filename)               
                 file = prepareFile(path,filename,currentDir)
                 dbFetch.checkIfExists(file,logPath)                
-                dbFetch.pushFileContent(file,logPath)                        
-        except FileNotFoundError: ##skip these files when they error
-            File.logFileError(file,1,logPath)
-        except PermissionError:
-            File.logFileError(file,2,logPath)
-        except NotADirectoryError: ##just print the file's name
-            if Path(currentDir).is_dir() == True: 
+                dbFetch.pushFileContent(file,logPath)
+               
+                 ##print("failed to push content")
+                          
+                ##the new path is this path plus the next folder
+                nextPath = os.path.join(path, filename)
+                searchDir(nextPath,logPath)
+                          
+            except FileNotFoundError: ##skip these files when they error
+                File.logFileError(file,1,logPath)
+                continue
+            except PermissionError:
+                File.logFileError(file,2,logPath)
+                continue
+            except NotADirectoryError: ##just print the file's name
+                if Path(currentDir).is_dir() == False : continue
                 File.logFileError(file,3,logPath)
  
 ##------------------------------------------------------
 ##
 ##------------------------------------------------------ 
 def main():
-    args = sys.argv[1:]
-    print(args)
-    path = args[0]
-    filename = args[1]
-    mode = args[2]
+    path = 'C:\\testFileDirectories'
+    run = 10
+    sec = 10
+    alive = True
     logPath = setOutfileInfo()
-    print("path =" + path)
-    print("filename =" + filename)
-    print("mode=" + mode)
-    logEvent(("Scan Starting in "+ path),logPath)
-    if mode == "scanDir":
+    ##goes until closed manually
+    while alive == True:
+        logEvent(("Scan Starting in "+ path),logPath)          
         searchDir(path,logPath)
-    elif mode == "scanFile":
-      validateFile(path, filename, logPath)
-    logEvent("Scan Finished.",logPath )
-
-def mainTest():
-  
-    path = 'C:\\testFileDirectories\\'
-    filename = 'a'
-    mode = 'scanDir'
-    logPath = setOutfileInfo()
-    print("path =" + path)
-    print("filename =" + filename)
-    print("mode=" + mode)
-    logEvent(("Scan Starting in "+ path),logPath)
-    if mode == "scanDir":
-        searchDir(path,logPath)
-    elif mode == "scanFile":
-      validateFile(path, filename, logPath)
-    logEvent("Scan Finished.",logPath )
+        logEvent("Scan Finished.",logPath )
+        logEvent("Moving Files for next run",logPath )        
+        if run == 10:
+            demo.demoMove()
+            run = 11
+        else:
+            demo.demoReturn()
+            run = 10
+        time.sleep(sec)
+        logEvent("Restarting scan in" + str(sec) + " seconds",logPath )
+        time.sleep(sec)
 ##------------------------------------------------------
 ## Run Main program, close execution window to stop.
 ##------------------------------------------------------
