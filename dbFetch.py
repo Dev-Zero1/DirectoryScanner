@@ -123,7 +123,7 @@ def pushFileContent(file, logPath):
     database="directoryScanner"
     )
   f = file
-  extList = ['xml','html','htm','css','js','txt','log','config','ini','bat','cif','ach','dat','cs','resx','md','csv','py']
+  extList = ['xml','html','htm','css','js','txt','log','config','ini','bat','cif','ach','dat','cs','resx','md','csv','py','java']
   
   if f.fileType in extList:    
     fullPath = os.path.join(f.fileDir, f.fileName)

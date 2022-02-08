@@ -11,7 +11,13 @@ import dbFetch
 import File
 import demo
 import sys
+from tkinter import messagebox
 
+##------------------------------------------------------
+##showNotification() pops up a message of the string arg
+##------------------------------------------------------  
+def showNotification(notice):
+    messagebox.showinfo('Information',notice)
 ##------------------------------------------------------
 ##getDateNow() returns a string date of
 ##YYYYMMDD or '20220129' if Jan 29, 2022
@@ -43,7 +49,7 @@ def logFormattedMsg(msg, logPath):
     logWriter.write(msg)
     logWriter.close()
 ##------------------------------------------------------
-##
+##initialization for creating the application folders and logs
 ##------------------------------------------------------     
 def createAppFolders():
     ##create root folder
@@ -77,7 +83,7 @@ def createFile(path):
     if not os.path.exists(path):
         os.system('touch '+path)
 ##------------------------------------------------------
-##
+##console output for file scans
 ##------------------------------------------------------         
 def outputPathHeader(newPath):
     print("\n\n"+newPath + "\\")
@@ -89,7 +95,8 @@ def printFileData(currDir, filename):
     else:
         print(filename)
 ##------------------------------------------------------
-##
+##parses the file type from the filename
+##returns the extension "exe", "txt", etc.
 ##------------------------------------------------------         
 def getFileType(currDir,filename):
     fType = ''
@@ -102,7 +109,7 @@ def getFileType(currDir,filename):
              fType = 'unknown'
     return fType
 ##------------------------------------------------------
-##
+##allows the program to avoid useless/blocked directories
 ##------------------------------------------------------         
 def skipDir(filename):
     skipIndicator = False
@@ -118,7 +125,7 @@ def skipDir(filename):
     elif filename == 'DirectoryScanner': skipIndicator = True
     return skipIndicator
 ##------------------------------------------------------
-##
+##fetches the most current fileId to use for the DB insert
 ##------------------------------------------------------ 
 def getFileId():
     fID = 0
@@ -129,7 +136,7 @@ def getFileId():
         fID = 1
     return fID
 ##------------------------------------------------------
-##
+##prepares a file object with the scanned data to return
 ##------------------------------------------------------ 
 def prepareFile(path,filename,currentDir):   
     fType = getFileType(currentDir,filename)
@@ -148,7 +155,10 @@ def prepareFile(path,filename,currentDir):
     file = File.make_file(int(fID), filename, path, fType,fLastMod,fCreated,timeNow, int(fSize))
     return file
 ##------------------------------------------------------
-##
+##Recursive function to scan over each directories contents
+##checks for duplication
+##commits files with different lastModified signatures
+##commits folders with different directory signatures.
 ##------------------------------------------------------ 
 def searchDir(newPath,logPath):
     path = newPath
@@ -175,10 +185,12 @@ def searchDir(newPath,logPath):
                 File.logFileError(file,1,logPath)              
             except PermissionError:
                 File.logFileError(file,2,logPath)           
-            except NotADirectoryError: ##just print the file's name
+            except NotADirectoryError: 
                 if Path(currentDir).is_dir() == True:
                     File.logFileError(file,3,logPath)
-                
+##------------------------------------------------------
+##
+##----------------------------------------------------                
 def validateFile(newPath, filename, logPath):
     path = newPath
     outputPathHeader(filename)        
@@ -204,7 +216,10 @@ def validateFile(newPath, filename, logPath):
                 File.logFileError(file,3,logPath)
  
 ##------------------------------------------------------
-##
+## main runs in 3 modes:
+##scanDir   -   scans a single directory once, notifies when finished.
+##scanFile  -   scans a file once, notifies when finished.
+##auto      -   scans a directory repeatedly, monitoring for changes.
 ##------------------------------------------------------ 
 def main():
     args = sys.argv[1:]
@@ -213,39 +228,51 @@ def main():
     filename = args[1]
     mode = args[2]
     logPath = setOutfileInfo()
-    print("path =" + path)
-    print("filename =" + filename)
-    print("mode=" + mode)
-    logEvent(("Scan Starting in "+ path),logPath)
+    ##sec == args[3] NOT IMPLEMENTED, scan interval time could be set during runtime.
+    
     if mode == "scanDir":
+        logEvent(("Scan Starting in "+ path),logPath)
         searchDir(path,logPath)
+        logEvent("Scan Finished.",logPath )
+        showNotification(('Scan Finished for folder :\n' + path)) 
     elif mode == "scanFile":
-      validateFile(path, filename, logPath)
-    logEvent("Scan Finished.",logPath )
+        logEvent(("Scan Starting in "+ path),logPath)
+        validateFile(path, filename, logPath)
+        logEvent(("Scan Finished for file "+ path),logPath )
+        if filename != 'DS_Logins.txt':
+            showNotification(('Scan Finished in :\n' + path))
+    elif mode == "auto":
+        alive = True
+        sec = 5
+        while alive == True:     
+            logEvent(("Scan Starting in "+ path),logPath)
+            searchDir(path,logPath)
+            logEvent(("Scan Finished in "+ path +"\nStarting again in " + str(sec) + " seconds."),logPath )
+            time.sleep(sec)
 
-def mainTest():
-  
-    path = 'C:\\testFileDirectories\\'
-    filename = 'a'
-    mode = 'scanDir'
-    logPath = setOutfileInfo()
-    print("path =" + path)
-    print("filename =" + filename)
-    print("mode=" + mode)
-    logEvent(("Scan Starting in "+ path),logPath)
-    if mode == "scanDir":
-        searchDir(path,logPath)
-    elif mode == "scanFile":
-      validateFile(path, filename, logPath)
-    logEvent("Scan Finished.",logPath )
 ##------------------------------------------------------
-## Run Main program, close execution window to stop.
+## Run Main program
 ##------------------------------------------------------
-main()
-##demo.demoReturn()
+main()  
 ##------------------------------------------------------ 
 
 
+##def mainTest():
+##  
+##    path = 'C:\\inetpub\\'
+##    mode = 'scanDir'
+##    filename = ''
+##    logPath = setOutfileInfo()
+##    print("path =" + path)
+##    print("filename =" + filename)
+##    print("mode=" + mode)
+##    logEvent(("Scan Starting in "+ path),logPath)
+##    if mode == "scanDir":
+##        searchDir(path,logPath)
+##    elif mode == "scanFile":
+##      validateFile(path, filename, logPath)
+##    logEvent("Scan Finished.",logPath )
+##
 ##import zipfile
 ##with zipfile.ZipFile(zipPath, 'r') as zip:
 ##    zip.extractall(dirPath)
